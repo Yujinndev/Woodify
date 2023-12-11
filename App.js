@@ -1,20 +1,70 @@
-import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View } from 'react-native';
+import React, { useEffect } from "react";
+import { StatusBar } from "expo-status-bar";
+import { useFonts } from "expo-font";
+import * as SplashScreen from "expo-splash-screen";
+import MainNavigation from "./navigation/MainNavigation";
+import {
+  MD3LightTheme as DefaultTheme,
+  PaperProvider,
+} from "react-native-paper";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import Colors from "./constants/Colors";
 
-export default function App() {
+// Create a client
+const queryClient = new QueryClient();
+
+const App = () => {
+  const [fontsLoaded] = useFonts({
+    Montserrat: require("./assets/fonts/Montserrat-Regular.ttf"),
+    "Montserrat-sb": require("./assets/fonts/Montserrat-SemiBold.ttf"),
+    "Montserrat-b": require("./assets/fonts/Montserrat-Bold.ttf"),
+    Petemoss: require("./assets/fonts/Petemoss-Regular.ttf"),
+    Inter: require("./assets/fonts/Inter.ttf"),
+    Lora: require("./assets/fonts/Lora.ttf"),
+    Poppins: require("./assets/fonts/Poppins-Bold.ttf"),
+    Lilita: require("./assets/fonts/LilitaOne-Regular.ttf"),
+    PaytoneOne: require("./assets/fonts/PaytoneOne-Regular.ttf"),
+  });
+
+  const theme = {
+    ...DefaultTheme,
+    // Specify custom property
+    myOwnProperty: true,
+    // Specify custom property in nested object
+    colors: {
+      ...DefaultTheme.colors,
+      primary: Colors.primary,
+      secondary: Colors.secondary,
+    },
+  };
+
+  useEffect(() => {
+    async function prepare() {
+      await SplashScreen.preventAutoHideAsync();
+    }
+
+    async function initializeApp() {
+      await prepare();
+      SplashScreen.hideAsync();
+    }
+
+    initializeApp();
+  }, []);
+
+  if (!fontsLoaded) {
+    return null;
+  }
+
   return (
-    <View style={styles.container}>
-      <Text>Open up App.js to start working on your app!</Text>
+    <>
       <StatusBar style="auto" />
-    </View>
+      <QueryClientProvider client={queryClient}>
+        <PaperProvider theme={theme}>
+          <MainNavigation />
+        </PaperProvider>
+      </QueryClientProvider>
+    </>
   );
-}
+};
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-});
+export default App;
