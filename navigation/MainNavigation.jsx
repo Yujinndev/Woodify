@@ -176,7 +176,11 @@ const MainNavigation = () => {
           component={ProductsTab}
           options={{ headerShown: false }}
         />
-        <Tab.Screen name="Customization" component={Customization} />
+        <Tab.Screen
+          name="Customization"
+          component={Customization}
+          options={{ headerTitle: "Customization" }}
+        />
         <Tab.Screen
           name="Cart"
           component={Cart}

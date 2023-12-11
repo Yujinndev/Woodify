@@ -28,9 +28,7 @@ const App = () => {
 
   const theme = {
     ...DefaultTheme,
-    // Specify custom property
     myOwnProperty: true,
-    // Specify custom property in nested object
     colors: {
       ...DefaultTheme.colors,
       primary: Colors.primary,
@@ -56,14 +54,12 @@ const App = () => {
   }
 
   return (
-    <>
+    <QueryClientProvider client={queryClient}>
       <StatusBar style="auto" />
-      <QueryClientProvider client={queryClient}>
-        <PaperProvider theme={theme}>
-          <MainNavigation />
-        </PaperProvider>
-      </QueryClientProvider>
-    </>
+      <PaperProvider theme={theme}>
+        <MainNavigation />
+      </PaperProvider>
+    </QueryClientProvider>
   );
 };
 

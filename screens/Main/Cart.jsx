@@ -3,7 +3,6 @@ import {
   Text,
   View,
   Image,
-  ScrollView,
   TouchableOpacity,
   StyleSheet,
   FlatList,
@@ -17,9 +16,9 @@ import axios from "axios";
 
 const Cart = () => {
   const API_URL = process.env.EXPO_PUBLIC_API_URL;
-
   const user = useUserStore((state) => state.user);
-  console.log("🚀 ~ file: Cart.jsx:19 ~ Cart ~ user:", user);
+  const [cartItems, setCartItems] = useState([]);
+  const [total, setTotal] = useState(0);
 
   const getCartItems = async () => {
     try {
@@ -39,22 +38,24 @@ const Cart = () => {
     enabled: !!user,
   });
 
+  setCartItems({ data });
+
   const calculateItemTotal = (cartItem) => {
     return cartItem.price * cartItem.quantity;
   };
 
   const totalPrice = () => {
-    let total = 0;
-
-    data?.forEach((cartItem) => {
-      total += calculateItemTotal(cartItem);
+    cartItems.forEach((cartItem) => {
+      setTotal((total += calculateItemTotal(cartItem)));
     });
 
-    return total.toFixed(2);
+    return total;
   };
 
   useEffect(() => {
     if (!user) {
+      setCartItems([]);
+      setTotal(0);
       refetch();
     }
   }, [user]);
@@ -91,7 +92,7 @@ const Cart = () => {
           <FlatList
             style={{ flex: 1, marginHorizontal: 2 }}
             showsVerticalScrollIndicator={false}
-            data={data}
+            data={cartItems}
             renderItem={renderRow}
             idExtractor={(item) => item.cart_id.toString()}
           />
@@ -99,7 +100,7 @@ const Cart = () => {
       </View>
 
       <View style={styles.placeOrderCtn}>
-        <Text style={styles.text}>₱ {totalPrice()}</Text>
+        <Text style={styles.text}>₱ {totalPrice().toFixed(2)}</Text>
 
         <TouchableOpacity
           // onPress={() => navigation.navigate('Home')}
