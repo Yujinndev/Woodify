@@ -1,3 +1,4 @@
+import React, { useRef, useState, useEffect } from "react";
 import {
   FlatList,
   TouchableOpacity,
@@ -6,17 +7,18 @@ import {
   Text,
   StyleSheet,
 } from "react-native";
-import React, { useRef, useState, useEffect } from "react";
-import useItems from "../hooks/items";
-import Colors from "../constants/Colors";
 import Animated, { FadeInRight, FadeOutLeft } from "react-native-reanimated";
-import { defaultStyles } from "../constants/DefaultStyles";
 import { Divider } from "react-native-paper";
 import { useNavigation } from "@react-navigation/native";
+import { Metrics } from "../constants/Metrics";
+import { defaultStyles } from "../constants/DefaultStyles";
+import Colors from "../constants/Colors";
+import Loading from "./Loading";
 
-const Listings = ({ category }) => {
+const Listings = ({ category, data, isLoading, isSuccess }) => {
+  console.log("🚀 ~ file: Listings.jsx:19 ~ Listings ~ data:", data);
+
   const navigation = useNavigation();
-  const { data, isLoading, isSuccess } = useItems();
   const listRef = useRef(null);
   const [loading, setLoading] = useState(false);
 
@@ -72,9 +74,10 @@ const Listings = ({ category }) => {
 
   return (
     <View style={styles.container}>
+      {isLoading && <Loading />}
       {isSuccess && (
         <FlatList
-          style={{ flex: 1, marginHorizontal: 2 }}
+          style={{ width: Metrics.screenWidth, marginHorizontal: 2 }}
           ref={listRef}
           showsVerticalScrollIndicator={false}
           data={loading ? [] : filteredItems}

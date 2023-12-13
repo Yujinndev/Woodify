@@ -1,9 +1,7 @@
 import React, { useRef, useState, useEffect } from "react";
 import { Animated, FlatList, StyleSheet, View } from "react-native";
-import useItems from "../hooks/items";
-import Pagination from "../components/Pagination";
-import Loading from "../components/Loading";
 import { Metrics } from "../constants/Metrics";
+import Pagination from "../components/Pagination";
 import carousel from "../hooks/carousel";
 
 const Slider = () => {

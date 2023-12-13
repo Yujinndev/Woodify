@@ -7,10 +7,10 @@ import {
   TouchableOpacity,
   StyleSheet,
 } from "react-native";
-import Colors from "../constants/Colors";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import useCategories from "../hooks/categories";
 import Loading from "../components/Loading";
+import Colors from "../constants/Colors";
 
 const AppHeader = ({ onCategoryChanged, passedIndex }) => {
   const { data, isLoading, isSuccess } = useCategories();

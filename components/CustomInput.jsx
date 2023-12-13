@@ -14,6 +14,7 @@ const CustomInput = ({
   secureTextEntry,
   orientation,
   errorResponse,
+  inputType = "default",
 }) => {
   const [hide, setHide] = useState(secureTextEntry);
 
@@ -40,6 +41,7 @@ const CustomInput = ({
             onBlur={onBlur}
             secureTextEntry={hide}
             onChangeText={onChange}
+            keyboardType={inputType}
             activeOutlineColor={(error || errorResponse) && Colors.error}
             outlineColor={(error || errorResponse) && Colors.error}
             style={{ marginVertical: -0 }}

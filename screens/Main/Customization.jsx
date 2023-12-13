@@ -1,110 +1,212 @@
+import React, { useEffect, useRef, useState } from "react";
 import {
   View,
   Text,
   TouchableOpacity,
   StyleSheet,
   FlatList,
-  ScrollView,
 } from "react-native";
-import React, { useRef, useState } from "react";
-import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { useForm } from "react-hook-form";
+import { useFocusEffect } from "@react-navigation/native";
+import { Button, Divider } from "react-native-paper";
+import axios from "axios";
 import Colors from "../../constants/Colors";
+import CustomInput from "../../components/CustomInput";
+import useCategories from "../../hooks/categories";
+import useTypes from "../../hooks/types";
 import { defaultStyles } from "../../constants/DefaultStyles";
-import { Divider } from "react-native-paper";
 
 const Customization = () => {
-  const [selectedCategory, setSelectedCategory] = useState(0);
+  const { data: types } = useTypes();
+  const { data: categories } = useCategories();
+  const allCategories = categories.filter((_, index) => index !== 0);
   const categoriesRef = useRef([]);
-  const [selectedType, setSelectedType] = useState(0);
   const typesRef = useRef([]);
+  const [selectedCategory, setSelectedCategory] = useState(0);
+  const [selectedType, setSelectedType] = useState(0);
+  const [errorResponse, setErrorResponse] = useState();
+  const [loading, setLoading] = useState(false);
 
-  const [categories, setCategories] = useState([
-    { category_id: 1, name: "Category 1", icon: "android" },
-    { category_id: 2, name: "Category 2", icon: "android" },
-    { category_id: 3, name: "Category 3", icon: "android" },
-    { category_id: 4, name: "Category 4", icon: "android" },
-    { category_id: 5, name: "Category 5", icon: "android" },
-  ]);
+  const {
+    control,
+    handleSubmit,
+    reset,
+    formState: { errors },
+  } = useForm();
 
-  const [types, setTypes] = useState([
-    { type_id: 1, name: "Type 1", icon: "android" },
-    { type_id: 2, name: "Type 2", icon: "android" },
-    { type_id: 3, name: "Type 3", icon: "android" },
-    { type_id: 4, name: "Type 4", icon: "android" },
-    { type_id: 5, name: "Type 5", icon: "android" },
-    { type_id: 6, name: "Type 6", icon: "android" },
-  ]);
+  useEffect(() => {
+    if (errorResponse) {
+      const timeoutId = setTimeout(() => {
+        setErrorResponse(null);
+      }, 5000);
+
+      return () => clearTimeout(timeoutId);
+    }
+  }, [errorResponse]);
+
+  useFocusEffect(
+    React.useCallback(() => {
+      reset();
+      setSelectedCategory(0);
+      setSelectedType(0);
+    }, [reset])
+  );
+
+  const onSubmit = async (data) => {
+    if (loading) {
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const response = await axios.post(`${API_URL}/register`, {
+        firstname: data.firstname,
+      });
+
+      const result = response.data;
+      if (result[0].message === "Registration Failed") {
+        setErrorResponse(result[0].message);
+      } else {
+        navigation.navigate("Login");
+      }
+    } catch (error) {
+      throw new Error(`Error: ${error.message}`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const renderFlatListItem = (
+    item,
+    index,
+    refArray,
+    selectedState,
+    setSelectedState
+  ) => (
+    <TouchableOpacity
+      ref={(element) => (refArray.current[index] = element)}
+      key={index}
+      style={
+        selectedState === item.category_id || selectedState === item.type_id
+          ? styles.itemSelected
+          : styles.item
+      }
+      onPress={() =>
+        setSelectedState(
+          selectedState === item.category_id || selectedState === item.type_id
+            ? null
+            : item.category_id || item.type_id
+        )
+      }
+    >
+      <Text style={styles.text}>{item.name || item.type}</Text>
+    </TouchableOpacity>
+  );
 
   return (
     <View style={defaultStyles.container}>
-      <View style={{}}>
-        <Text style={defaultStyles.title}>What category of furniture?</Text>
-        <FlatList
-          contentContainerStyle={{
-            justifyContent: "center",
-            alignItems: "center",
-            gap: 10,
+      <View style={{ marginVertical: 10 }}>
+        <Text style={defaultStyles.subtitle}>Price Range</Text>
+        <View
+          style={{
+            flexDirection: "row",
+            justifyContent: "space-between",
+            marginVertical: 10,
           }}
-          numColumns={3}
-          horizontal={false}
-          data={categories}
-          renderItem={({ item, index }) => (
-            <TouchableOpacity
-              ref={(element) => (categoriesRef.current[index] = element)}
-              key={index}
-              style={
-                selectedCategory == item.category_id
-                  ? styles.itemSelected
-                  : styles.item
-              }
-              onPress={() => setSelectedCategory(item.category_id)}
-            >
-              <MaterialCommunityIcons name={item?.icon} size={36} />
-              <Text style={styles.text}>{item.name}</Text>
-            </TouchableOpacity>
-          )}
-          keyExtractor={(item) => item.category_id.toString()}
-        />
-      </View>
-      <Text style={defaultStyles.title}>SELECTED: {selectedCategory}</Text>
-      <Divider theme={{ colors: { primary: Colors.offwhite } }} />
-      <View>
-        <Text style={defaultStyles.title}>What type of wood?</Text>
-        <FlatList
-          contentContainerStyle={{
-            justifyContent: "center",
-            alignItems: "center",
-            gap: 10,
-          }}
-          numColumns={3}
-          horizontal={false}
-          data={types}
-          renderItem={({ index, item }) => (
-            <TouchableOpacity
-              ref={(element) => (typesRef.current[index] = element)}
-              key={index}
-              style={
-                selectedType == item.type_id ? styles.itemSelected : styles.item
-              }
-              onPress={() => setSelectedType(item.type_id)}
-            >
-              <MaterialCommunityIcons name={item?.icon} size={36} />
-              <Text style={styles.text}>{item.name}</Text>
-            </TouchableOpacity>
-          )}
-          keyExtractor={(item) => item.type_id.toString()}
-        />
-
-        <Text style={defaultStyles.title}>SELECTED: {selectedType}</Text>
+        >
+          <CustomInput
+            name="minimum"
+            placeholder="Minimum"
+            orientation="row"
+            control={control}
+            errorResponse={errorResponse}
+            inputType={"numeric"}
+            rules={{
+              required: "Min is required",
+              pattern: {
+                value: /^[0-9]*$/, // Only allow numbers
+                message: "Enter a Valid Price",
+              },
+            }}
+          />
+          <CustomInput
+            name="maximum"
+            placeholder="Maximum"
+            orientation="row"
+            control={control}
+            errorResponse={errorResponse}
+            inputType={"numeric"}
+            rules={{
+              required: "Max is required",
+              pattern: {
+                value: /^[0-9]*$/, // Only allow numbers
+                message: "Enter a Valid Price",
+              },
+            }}
+          />
+        </View>
         <Divider theme={{ colors: { primary: Colors.offwhite } }} />
       </View>
+
+      {/* Categories Section */}
+      <View style={{ marginVertical: 10 }}>
+        <Text style={defaultStyles.subtitle}>What category of furniture?</Text>
+        <FlatList
+          contentContainerStyle={styles.flatListContainer}
+          numColumns={2}
+          horizontal={false}
+          data={allCategories}
+          renderItem={({ item, index }) =>
+            renderFlatListItem(
+              item,
+              index,
+              categoriesRef,
+              selectedCategory,
+              setSelectedCategory
+            )
+          }
+          keyExtractor={(item) => item.category_id.toString()}
+        />
+        <Divider theme={{ colors: { primary: Colors.offwhite } }} />
+      </View>
+
+      {/* Types Section */}
+      <View style={{ marginVertical: 10 }}>
+        <Text style={defaultStyles.subtitle}>What type of wood?</Text>
+        <FlatList
+          contentContainerStyle={styles.flatListContainer}
+          numColumns={2}
+          horizontal={false}
+          data={types}
+          renderItem={({ item, index }) =>
+            renderFlatListItem(
+              item,
+              index,
+              typesRef,
+              selectedType,
+              setSelectedType
+            )
+          }
+          keyExtractor={(item) => item.type_id.toString()}
+        />
+        <Divider theme={{ colors: { primary: Colors.offwhite } }} />
+      </View>
+
+      {/* Submit Button */}
+      <Button
+        mode="contained"
+        onPress={handleSubmit(onSubmit)}
+        theme={{ roundness: 1 }}
+      >
+        {loading ? "Processing ..." : "Request Customization"}
+      </Button>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
   item: {
-    width: 125,
+    width: 180,
     marginRight: 8,
     padding: 8,
     alignItems: "center",
@@ -113,7 +215,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   itemSelected: {
-    width: 125,
+    width: 180,
     marginRight: 8,
     padding: 8,
     alignItems: "center",
@@ -125,6 +227,12 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontFamily: "Montserrat-sb",
     color: Colors.dark,
+  },
+  flatListContainer: {
+    justifyContent: "center",
+    alignItems: "center",
+    gap: 10,
+    marginVertical: 10,
   },
 });
 

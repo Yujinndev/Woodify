@@ -11,7 +11,13 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import Colors from "./constants/Colors";
 
 // Create a client
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: "always",
+    },
+  },
+});
 
 const App = () => {
   const [fontsLoaded] = useFonts({

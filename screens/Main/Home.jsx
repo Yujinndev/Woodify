@@ -4,22 +4,37 @@ import {
   Text,
   StyleSheet,
   FlatList,
-  Image,
   TouchableOpacity,
-  ScrollView,
 } from "react-native";
-import Slider from "../../components/Slider";
-import { defaultStyles } from "../../constants/DefaultStyles";
-import useCategories from "../../hooks/categories";
-import Loading from "../../components/Loading";
-import Colors from "../../constants/Colors";
+import { useQuery } from "@tanstack/react-query";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
-import Listings from "../../components/Listings";
+import { fetchTrendingItems } from "../../hooks/items";
+import useCategories from "../../hooks/categories";
 import useUserStore from "../../utils/userStore";
 
+/* COMPONENTS & THEMES */
+import Slider from "../../components/Slider";
+import Loading from "../../components/Loading";
+import Listings from "../../components/Listings";
+import Colors from "../../constants/Colors";
+import { defaultStyles } from "../../constants/DefaultStyles";
+
 const Home = () => {
-  const { data, isLoading, isSuccess } = useCategories();
+  const {
+    data: categories,
+    isLoading: isCategoriesLoading,
+    isSuccess: isCategoriesSuccess,
+  } = useCategories();
+  const {
+    data: trending,
+    isLoading: isItemsLoading,
+    isSuccess: isItemsSuccess,
+  } = useQuery({
+    queryKey: ["trend"],
+    queryFn: () => fetchTrendingItems(),
+  });
+
   const navigation = useNavigation();
   const user = useUserStore((state) => state.user);
   console.log("🚀 ~ file: Home.jsx:25 ~ Home ~ user:", user);
@@ -49,13 +64,13 @@ const Home = () => {
           <View style={styles.category}>
             <Text style={defaultStyles.title}>Categories</Text>
 
-            {isLoading && <Loading />}
-            {isSuccess && (
+            {isCategoriesLoading && <Loading />}
+            {isCategoriesSuccess && (
               <FlatList
                 style={{ marginVertical: 8 }}
                 horizontal
                 showsHorizontalScrollIndicator={false}
-                data={data}
+                data={categories}
                 renderItem={(index) => RenderRow(index)}
                 keyExtractor={(item) => item.category_id.toString()}
               />
@@ -66,7 +81,11 @@ const Home = () => {
       }
       ListFooterComponent={
         <View style={styles.container}>
-          <Listings />
+          <Listings
+            data={trending}
+            isLoading={isItemsLoading}
+            isSuccess={isItemsSuccess}
+          />
         </View>
       }
     />
