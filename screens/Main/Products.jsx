@@ -1,14 +1,26 @@
-import { View, StyleSheet } from "react-native";
 import React, { useState, useEffect } from "react";
+import { AppBar } from "@react-native-material/core";
+import { useQuery } from "@tanstack/react-query";
+import { View, StyleSheet } from "react-native";
+import { fetchAllItems } from "../../hooks/items";
 import AppHeader from "../../components/AppHeader";
 import Listings from "../../components/Listings";
-import { AppBar } from "@react-native-material/core";
 import Colors from "../../constants/Colors";
 
 const Products = ({ route }) => {
+  const [search, setSearch] = useState("");
   const { category } = route.params ? route.params : 0;
   const [selectedCategory, setSelectedCategory] = useState();
   const [activeIndex, setActiveIndex] = useState();
+
+  const {
+    data: items,
+    isLoading,
+    isSuccess,
+  } = useQuery({
+    queryKey: ["allItems", { search }],
+    queryFn: () => fetchAllItems(search),
+  });
 
   const onDataChanged = (category) => {
     category === 1 ? setSelectedCategory(null) : setSelectedCategory(category);
@@ -38,7 +50,12 @@ const Products = ({ route }) => {
         />
       </View>
       <View style={styles.container}>
-        <Listings category={selectedCategory} />
+        <Listings
+          category={selectedCategory}
+          data={items}
+          isLoading={isLoading}
+          isSuccess={isSuccess}
+        />
       </View>
     </>
   );

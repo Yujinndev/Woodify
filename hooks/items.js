@@ -1,20 +1,29 @@
-import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
 const API_URL = process.env.EXPO_PUBLIC_API_URL;
 
-const getItems = async () => {
+export const fetchAllItems = async ({ search }) => {
   try {
-    const response = await axios.get(`${API_URL}/items`);
+    const response = await axios.get(`${API_URL}/allItems`);
+    console.log(
+      "🚀 ~ file: items.js:8 ~ fetchAllItems ~ response:",
+      response.data
+    );
     return response.data;
   } catch (error) {
     throw new Error(`Error fetching: ${error.message}`);
   }
 };
 
-const useItems = () =>
-  useQuery({
-    queryKey: ["items"],
-    queryFn: getItems,
-  });
+export const fetchTrendingItems = async () => {
+  try {
+    const response = await axios.get(`${API_URL}/trendingItems`);
 
-export default useItems;
+    console.log(
+      "🚀 ~ file: items.js:22 ~ fetchTrendingItems ~ response:",
+      response.data
+    );
+    return response.data;
+  } catch (error) {
+    throw new Error(`Error fetching: ${error.message}`);
+  }
+};

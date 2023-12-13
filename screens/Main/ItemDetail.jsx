@@ -8,17 +8,20 @@ import {
   ToastAndroid,
   FlatList,
 } from "react-native";
+import { useQueryClient, useMutation } from "@tanstack/react-query";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
-import { Button } from "react-native-paper";
 import { AppBar } from "@react-native-material/core";
-import { defaultStyles } from "../../constants/DefaultStyles";
-import { Metrics } from "../../constants/Metrics";
-import Colors from "../../constants/Colors";
+import { Button } from "react-native-paper";
 import axios from "axios";
 import useUserStore from "../../utils/userStore";
+import Colors from "../../constants/Colors";
+import { defaultStyles } from "../../constants/DefaultStyles";
+import { Metrics } from "../../constants/Metrics";
 
 const ItemDetail = ({ route }) => {
+  const queryClient = useQueryClient();
+
   const API_URL = process.env.EXPO_PUBLIC_API_URL;
   const navigation = useNavigation();
   const user = useUserStore((state) => state.user);
@@ -56,6 +59,13 @@ const ItemDetail = ({ route }) => {
       throw new Error(`Error: ${error.message}`);
     }
   };
+
+  const { mutateAsync: addToCart } = useMutation({
+    mutationFn: handleAddToCart,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["cart"] });
+    },
+  });
 
   return (
     <FlatList
@@ -129,7 +139,7 @@ const ItemDetail = ({ route }) => {
 
             <Button
               mode="contained"
-              onPress={() => handleAddToCart()}
+              onPress={() => addToCart()}
               theme={{ roundness: 1 }}
               style={{ width: 210, height: 45, justifyContent: "center" }}
             >

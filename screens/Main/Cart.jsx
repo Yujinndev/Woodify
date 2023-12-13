@@ -13,6 +13,7 @@ import Loading from "../../components/Loading";
 import { useQuery } from "@tanstack/react-query";
 import useUserStore from "../../utils/userStore";
 import axios from "axios";
+import { defaultStyles } from "../../constants/DefaultStyles";
 
 const Cart = () => {
   const API_URL = process.env.EXPO_PUBLIC_API_URL;
@@ -32,33 +33,37 @@ const Cart = () => {
     }
   };
 
-  const { data, isLoading, isSuccess, refetch } = useQuery({
+  const { data, isSuccess, refetch } = useQuery({
     queryKey: ["cart"],
     queryFn: getCartItems,
     enabled: !!user,
   });
-
-  setCartItems({ data });
-
-  const calculateItemTotal = (cartItem) => {
-    return cartItem.price * cartItem.quantity;
-  };
-
-  const totalPrice = () => {
-    cartItems.forEach((cartItem) => {
-      setTotal((total += calculateItemTotal(cartItem)));
-    });
-
-    return total;
-  };
 
   useEffect(() => {
     if (!user) {
       setCartItems([]);
       setTotal(0);
       refetch();
+    } else if (isSuccess) {
+      setCartItems(data);
     }
-  }, [user]);
+  }, [user, isSuccess, data, refetch]);
+
+  const calculateItemTotal = (cartItem) => {
+    return cartItem.price * cartItem.quantity;
+  };
+
+  useEffect(() => {
+    let calculatedTotal = 0;
+
+    if (cartItems.length > 0) {
+      cartItems.forEach((cartItem) => {
+        calculatedTotal += calculateItemTotal(cartItem);
+      });
+
+      setTotal(calculatedTotal);
+    }
+  }, [cartItems]);
 
   const renderRow = ({ item }) => {
     return (
@@ -71,13 +76,13 @@ const Cart = () => {
 
         <View style={styles.cartItemDetails}>
           <View style={styles.itemNamePrice}>
-            <Text style={styles.text}>{item.name}</Text>
-            <Text style={{ fontSize: 16 }}>
-              Price: {calculateItemTotal(item).toFixed(2)}
+            <Text style={defaultStyles.subtitle}>{item.name}</Text>
+            <Text style={defaultStyles.text}>
+              ₱ {calculateItemTotal(item).toFixed(2)}
             </Text>
           </View>
 
-          <Text style={{ fontSize: 16 }}>x{item.quantity}</Text>
+          <Text style={defaultStyles.text}>x{item.quantity}</Text>
         </View>
       </View>
     );
@@ -86,9 +91,7 @@ const Cart = () => {
   return (
     <View style={styles.cartCtn}>
       <View style={styles.cartDetailContainer}>
-        <Text style={styles.text}>ALL ITEMS</Text>
-        {isLoading && <Loading />}
-        {isSuccess && (
+        {isSuccess && cartItems.length > 0 ? (
           <FlatList
             style={{ flex: 1, marginHorizontal: 2 }}
             showsVerticalScrollIndicator={false}
@@ -96,18 +99,30 @@ const Cart = () => {
             renderItem={renderRow}
             idExtractor={(item) => item.cart_id.toString()}
           />
+        ) : (
+          <View
+            style={{
+              flex: 1,
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <Text style={defaultStyles.text}>
+              Uh oh! No Items available in your cart
+            </Text>
+          </View>
         )}
       </View>
 
       <View style={styles.placeOrderCtn}>
-        <Text style={styles.text}>₱ {totalPrice().toFixed(2)}</Text>
+        <Text style={defaultStyles.subtitle}>₱ {total.toFixed(2)}</Text>
 
         <TouchableOpacity
           // onPress={() => navigation.navigate('Home')}
           leading={<FontAwesome name="plus" size={18} color="#fff" />}
           style={styles.placeOrder}
         >
-          <Text style={styles.placeOrderText}>Place Order</Text>
+          <Text style={defaultStyles.subtitle}>Place Order</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -139,6 +154,7 @@ const styles = StyleSheet.create({
     borderBottomColor: "#f0f0f0",
     borderBottomWidth: 1,
     marginBottom: 5,
+    padding: 5,
   },
 
   cartItemDetails: {
@@ -150,15 +166,16 @@ const styles = StyleSheet.create({
   },
 
   cartItemPhoto: {
-    width: 75,
-    height: 75,
-    borderRadius: 5,
+    width: 70,
+    height: 60,
+    borderRadius: 3,
     marginRight: 10,
   },
 
   placeOrder: {
     backgroundColor: Colors.secondary,
-    padding: 8,
+    padding: 12,
+    paddingHorizontal: 16,
     borderRadius: 4,
   },
 
@@ -175,16 +192,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     borderRadius: 4,
     elevation: 1,
-  },
-
-  placeOrderText: {
-    fontSize: 16,
-    fontWeight: "bold",
-  },
-
-  text: {
-    fontSize: 18,
-    fontFamily: "Montserrat-sb",
   },
 });
 
